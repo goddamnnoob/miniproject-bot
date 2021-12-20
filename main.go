@@ -10,7 +10,6 @@ import (
 const GetAllAttacksUrl string = "http://127.0.0.1:8000/GetAllAttacks"
 
 func main() {
-
 	go func() {
 		for {
 			CheckAndExecuteAttacks()
